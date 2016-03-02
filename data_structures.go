@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"math/rand"
-)
+import "fmt"
 
 type Corner struct {
 	Street  string
@@ -13,6 +10,7 @@ type Corner struct {
 }
 
 type Dealer struct {
+	Name  string
 	Cash  int
 	Drugs map[Drug]int
 }
@@ -30,49 +28,10 @@ type User struct {
 	LastUsed       int64
 }
 
-type City struct {
-	Corners [][]*Corner
+func (user *User) String() string {
+	return fmt.Sprintf("%s [Susceptibility: %f, CurrentHigh: %f, LastUsed: %d]", user.Name, user.Susceptibility, user.CurrentHigh, user.LastUsed)
 }
 
-func (city *City) Populate(sizeX, sizeY int) {
-	city.Corners = make([][]*Corner, sizeX)
-
-	for x, _ := range city.Corners {
-		city.Corners[x] = make([]*Corner, sizeY)
-		for y, _ := range city.Corners[x] {
-			city.Corners[x][y] = &Corner{
-				Street: fmt.Sprintf("%d/%d Street", x, y),
-				Rating: float64(rand.Int()%10.0) * float64(0.1),
-			}
-		}
-	}
-
-}
-
-func (city *City) AllCorners() <-chan *Corner {
-	corners := make(chan *Corner)
-	go func() {
-		for x, _ := range city.Corners {
-			for y, _ := range city.Corners[x] {
-				corners <- city.Corners[x][y]
-			}
-		}
-		close(corners)
-	}()
-	return corners
-}
-
-func (city *City) PopulateJunkies() {
-	if city.Corners == nil {
-		return
-	}
-
-	for corner := range city.AllCorners() {
-		if corner.Users == nil {
-			corner.Users = make([]*User, 1)
-			corner.Users[0] = &User{
-				Name: "Beavis",
-			}
-		}
-	}
+func (dealer *Dealer) String() string {
+	return dealer.Name
 }
