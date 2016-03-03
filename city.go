@@ -76,11 +76,7 @@ func (city *City) PopulateJunkies() {
 	for corner := range city.AllCorners() {
 		if corner.Users == nil {
 			corner.Users = make([]*User, 1)
-			corner.Users[0] = &User{
-				Name:           names[rand.Int()%len(names)],
-				Susceptibility: float64(rand.Int()%100) * float64(0.01),
-				CurrentHigh:    float64(0),
-			}
+			corner.Users[0] = NewUser(names[rand.Int()%len(names)], 1, 18)
 		}
 	}
 }
@@ -91,6 +87,6 @@ func (city *City) UpdateJunkies() {
 	}
 
 	for junkie := range city.AllJunkies() {
-		fmt.Println(junkie)
+		junkie.Tick()
 	}
 }
