@@ -18,7 +18,7 @@ func main() {
 		//if junkie.NeedsFix() && junkie.Alive {
 		//	junkie.Use(4)
 		//}
-		if junkie.LastFix() > 1000*5 {
+		if junkie.LastFix() > 1000*5 && junkie.LastMovedSeconds() > 10 {
 			junkie.RandomMove()
 		}
 		time.Sleep(1 * time.Second)

@@ -42,6 +42,7 @@ type User struct {
 	CurrentHigh   float64 // 0.0 = clean and sober, 1.0 = dead
 	CurrentDrug   int
 	LastUsed      int64
+	LastMoved     int64
 	CurrentCorner *Corner
 }
 
@@ -79,30 +80,41 @@ func (user *User) Tick() {
 }
 
 func (user *User) RandomMove() *Corner {
-	x := user.CurrentCorner.LocationX
-	y := user.CurrentCorner.LocationY
+	x := -1
+	y := -1
+	maxX := len(user.CurrentCorner.City.Corners) - 1
+	maxY := len(user.CurrentCorner.City.Corners[0]) - 1
 
-	switch rand.Int() % 4 {
-	case 0:
-		x = x + 1
-	case 1:
-		y = y + 1
-	case 2:
-		x = x - 1
-	case 3:
-		y = y - 1
+	for x < 0 || y < 0 || x > maxX || y > maxY {
+		switch rand.Int() % 4 {
+		case 0:
+			x = user.CurrentCorner.LocationX + 1
+			y = user.CurrentCorner.LocationY
+		case 1:
+			x = user.CurrentCorner.LocationX
+			y = user.CurrentCorner.LocationY + 1
+		case 2:
+			x = user.CurrentCorner.LocationX - 1
+			y = user.CurrentCorner.LocationY
+		case 3:
+			x = user.CurrentCorner.LocationX
+			y = user.CurrentCorner.LocationY - 1
+		}
 	}
 
-	if x >= 0 && y >= 0 {
-		corner := user.CurrentCorner.City.Corner(x, y)
-		user.CurrentCorner = corner
-	}
+	corner := user.CurrentCorner.City.Corner(x, y)
+	user.CurrentCorner = corner
+	user.LastMoved = time.Now().Unix()
 
 	return user.CurrentCorner
 }
 
 func (user *User) LastFix() int64 {
 	return time.Now().Unix() - user.LastUsed
+}
+
+func (user *User) LastMovedSeconds() int64 {
+	return time.Now().Unix() - user.LastMoved
 }
 
 func (user *User) NeedsFix() bool {
