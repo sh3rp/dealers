@@ -5,13 +5,15 @@ import (
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/satori/go.uuid"
 )
 
 type Corner struct {
 	Street    string
 	Rating    float64 // 0.1 = ghetto, 0.9 = park avenue
 	Dealers   []*Dealer
-	Users     []*User
+	Users     map[uuid.UUID]*User
 	LocationX int
 	LocationY int
 	City      *City
@@ -29,6 +31,7 @@ type Drug struct {
 }
 
 type User struct {
+	Id            uuid.UUID
 	Name          string
 	Sex           int // 1 = male, 2 = female
 	CurrentAge    int
@@ -48,6 +51,7 @@ type User struct {
 
 func NewUser(name string, sex int, age int, corner *Corner) *User {
 	return &User{
+		Id:            uuid.NewV4(),
 		Name:          name,
 		Sex:           sex,
 		CurrentAge:    age,
@@ -102,11 +106,17 @@ func (user *User) RandomMove() *Corner {
 		}
 	}
 
-	corner := user.CurrentCorner.City.Corner(x, y)
-	user.CurrentCorner = corner
-	user.LastMoved = time.Now().Unix()
+	return user.MoveTo(x, y)
+}
 
-	return user.CurrentCorner
+func (user *User) MoveTo(x, y int) *Corner {
+	newCorner := user.CurrentCorner.City.Corner(x, y)
+	currentCorner := user.CurrentCorner
+	delete(currentCorner.Users, user.Id)
+	newCorner.Users[user.Id] = user
+	//fmt.Printf("Moved %s (%s) to (%d,%d)\n", user.Name, user.Id, user.CurrentCorner.LocationX, user.CurrentCorner.LocationY)
+
+	return newCorner
 }
 
 func (user *User) LastFix() int64 {
@@ -153,7 +163,7 @@ func (user *User) Use(drug int) {
 }
 
 func (user *User) String() string {
-	return fmt.Sprintf("%s (%d,%d) alive=%t [Dependency %f, Addiction: %f, CurrentHigh: %f, LastUsed: %d, Uses: %d]", user.Name, user.CurrentCorner.LocationX, user.CurrentCorner.LocationY, user.Alive, user.Dependency, user.Addiction, user.CurrentHigh, user.LastUsed, user.NumberOfUses)
+	return fmt.Sprintf("[%s] %s (%d,%d) alive=%t [Dependency %f, Addiction: %f, CurrentHigh: %f, LastUsed: %d, Uses: %d]", user.Id, user.Name, user.CurrentCorner.LocationX, user.CurrentCorner.LocationY, user.Alive, user.Dependency, user.Addiction, user.CurrentHigh, user.LastUsed, user.NumberOfUses)
 }
 
 func (dealer *Dealer) String() string {

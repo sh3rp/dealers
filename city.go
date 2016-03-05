@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"math/rand"
+
+	"github.com/satori/go.uuid"
 )
 
 type City struct {
@@ -82,8 +84,9 @@ func (city *City) PopulateJunkies() {
 
 	for corner := range city.AllCorners() {
 		if corner.Users == nil {
-			corner.Users = make([]*User, 1)
-			corner.Users[0] = NewUser(names[rand.Int()%len(names)], 1, 18, corner)
+			corner.Users = make(map[uuid.UUID]*User, 1)
+			user := NewUser(names[rand.Int()%len(names)], 1, 18, corner)
+			corner.Users[user.Id] = user
 		}
 	}
 }
@@ -94,6 +97,9 @@ func (city *City) UpdateJunkies() {
 	}
 
 	for junkie := range city.AllJunkies() {
+		if junkie.LastFix() > 1000*5 && junkie.LastMovedSeconds() > 10 {
+			junkie.RandomMove()
+		}
 		junkie.Tick()
 	}
 }
