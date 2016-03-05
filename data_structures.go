@@ -8,10 +8,13 @@ import (
 )
 
 type Corner struct {
-	Street  string
-	Rating  float64 // 0.1 = ghetto, 0.9 = park avenue
-	Dealers []*Dealer
-	Users   []*User
+	Street    string
+	Rating    float64 // 0.1 = ghetto, 0.9 = park avenue
+	Dealers   []*Dealer
+	Users     []*User
+	LocationX int
+	LocationY int
+	City      *City
 }
 
 type Dealer struct {
@@ -26,36 +29,38 @@ type Drug struct {
 }
 
 type User struct {
-	Name         string
-	Sex          int // 1 = male, 2 = female
-	CurrentAge   int
-	Alive        bool
-	UsingSince   int
-	BornOn       int64
-	DrugOfChoice int     // 1 = marijuana, 2 = cocaine, 3 = lsd, 4 = heroin
-	Dependency   float64 // static value: 0.0 = not dependent at all, 1.0 = extremely dependent, cannot survive on own
-	Addiction    float64 // static value: 0.0 = no addictive personality, 1.0 = extremely addictive personality
-	NumberOfUses int
-	CurrentHigh  float64 // 0.0 = clean and sober, 1.0 = dead
-	CurrentDrug  int
-	LastUsed     int64
+	Name          string
+	Sex           int // 1 = male, 2 = female
+	CurrentAge    int
+	Alive         bool
+	UsingSince    int
+	BornOn        int64
+	DrugOfChoice  int     // 1 = marijuana, 2 = cocaine, 3 = lsd, 4 = heroin
+	Dependency    float64 // static value: 0.0 = not dependent at all, 1.0 = extremely dependent, cannot survive on own
+	Addiction     float64 // static value: 0.0 = no addictive personality, 1.0 = extremely addictive personality
+	NumberOfUses  int
+	CurrentHigh   float64 // 0.0 = clean and sober, 1.0 = dead
+	CurrentDrug   int
+	LastUsed      int64
+	CurrentCorner *Corner
 }
 
-func NewUser(name string, sex int, age int) *User {
+func NewUser(name string, sex int, age int, corner *Corner) *User {
 	return &User{
-		Name:         name,
-		Sex:          sex,
-		CurrentAge:   age,
-		Alive:        true,
-		BornOn:       time.Now().Unix(),
-		UsingSince:   0,
-		DrugOfChoice: 1, // e'rybody start out with the trees
-		Dependency:   (float64(rand.Int()%10) + 1) * 0.1,
-		Addiction:    (float64(rand.Int()%10) + 1) * 0.1,
-		CurrentDrug:  0,
-		CurrentHigh:  0,
-		LastUsed:     0,
-		NumberOfUses: 0,
+		Name:          name,
+		Sex:           sex,
+		CurrentAge:    age,
+		Alive:         true,
+		BornOn:        time.Now().Unix(),
+		UsingSince:    0,
+		DrugOfChoice:  1, // e'rybody start out with the trees
+		Dependency:    (float64(rand.Int()%10) + 1) * 0.1,
+		Addiction:     (float64(rand.Int()%10) + 1) * 0.1,
+		CurrentDrug:   0,
+		CurrentHigh:   0,
+		LastUsed:      0,
+		NumberOfUses:  0,
+		CurrentCorner: corner,
 	}
 }
 
@@ -71,6 +76,33 @@ func (user *User) Tick() {
 		user.CurrentHigh = 0
 	}
 
+}
+
+func (user *User) RandomMove() *Corner {
+	x := user.CurrentCorner.LocationX
+	y := user.CurrentCorner.LocationY
+
+	switch rand.Int() % 4 {
+	case 0:
+		x = x + 1
+	case 1:
+		y = y + 1
+	case 2:
+		x = x - 1
+	case 3:
+		y = y - 1
+	}
+
+	if x >= 0 && y >= 0 {
+		corner := user.CurrentCorner.City.Corner(x, y)
+		user.CurrentCorner = corner
+	}
+
+	return user.CurrentCorner
+}
+
+func (user *User) LastFix() int64 {
+	return time.Now().Unix() - user.LastUsed
 }
 
 func (user *User) NeedsFix() bool {
@@ -109,7 +141,7 @@ func (user *User) Use(drug int) {
 }
 
 func (user *User) String() string {
-	return fmt.Sprintf("%s alive=%t [Dependency %f, Addiction: %f, CurrentHigh: %f, LastUsed: %d, Uses: %d]", user.Name, user.Alive, user.Dependency, user.Addiction, user.CurrentHigh, user.LastUsed, user.NumberOfUses)
+	return fmt.Sprintf("%s (%d,%d) alive=%t [Dependency %f, Addiction: %f, CurrentHigh: %f, LastUsed: %d, Uses: %d]", user.Name, user.CurrentCorner.LocationX, user.CurrentCorner.LocationY, user.Alive, user.Dependency, user.Addiction, user.CurrentHigh, user.LastUsed, user.NumberOfUses)
 }
 
 func (dealer *Dealer) String() string {

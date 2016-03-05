@@ -32,12 +32,19 @@ func (city *City) Populate(sizeX, sizeY int) {
 		city.Corners[x] = make([]*Corner, sizeY)
 		for y, _ := range city.Corners[x] {
 			city.Corners[x][y] = &Corner{
-				Street: fmt.Sprintf("%d/%d Street", x, y),
-				Rating: float64(rand.Int()%10.0) * float64(0.1),
+				Street:    fmt.Sprintf("%d/%d Street", x, y),
+				Rating:    float64(rand.Int()%10.0) * float64(0.1),
+				LocationX: x,
+				LocationY: y,
+				City:      city,
 			}
 		}
 	}
 
+}
+
+func (city *City) Corner(x, y int) *Corner {
+	return city.Corners[x][y]
 }
 
 func (city *City) AllCorners() <-chan *Corner {
@@ -76,7 +83,7 @@ func (city *City) PopulateJunkies() {
 	for corner := range city.AllCorners() {
 		if corner.Users == nil {
 			corner.Users = make([]*User, 1)
-			corner.Users[0] = NewUser(names[rand.Int()%len(names)], 1, 18)
+			corner.Users[0] = NewUser(names[rand.Int()%len(names)], 1, 18, corner)
 		}
 	}
 }

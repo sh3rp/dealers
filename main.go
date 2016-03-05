@@ -15,8 +15,11 @@ func main() {
 	for {
 		city.UpdateJunkies()
 		fmt.Println(junkie)
-		if junkie.NeedsFix() && junkie.Alive {
-			junkie.Use(4)
+		//if junkie.NeedsFix() && junkie.Alive {
+		//	junkie.Use(4)
+		//}
+		if junkie.LastFix() > 1000*5 {
+			junkie.RandomMove()
 		}
 		time.Sleep(1 * time.Second)
 	}
