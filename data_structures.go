@@ -114,7 +114,7 @@ func (user *User) MoveTo(x, y int) *Corner {
 	currentCorner := user.CurrentCorner
 	delete(currentCorner.Users, user.Id)
 	newCorner.Users[user.Id] = user
-	//fmt.Printf("Moved %s (%s) to (%d,%d)\n", user.Name, user.Id, user.CurrentCorner.LocationX, user.CurrentCorner.LocationY)
+	user.LastMoved = time.Now().Unix()
 
 	return newCorner
 }

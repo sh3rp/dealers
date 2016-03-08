@@ -25,6 +25,14 @@ var names = []string{
 	"Vuvu Zela",
 	"Edwardoe Parsons",
 	"Jack Endall",
+	"Liesel Diesel",
+	"Gotobed Joy",
+	"Wheres Myphone",
+	"Donald Drumpf",
+	"Bernard Sand0rs",
+	"Lollery Clinton",
+	"Casey Pants",
+	"Ducky",
 }
 
 func (city *City) Populate(sizeX, sizeY int) {
@@ -95,11 +103,17 @@ func (city *City) UpdateJunkies() {
 	if city.Corners == nil {
 		return
 	}
-
+	moved := 0
 	for junkie := range city.AllJunkies() {
 		if junkie.LastFix() > 1000*5 && junkie.LastMovedSeconds() > 10 {
-			junkie.RandomMove()
+			// 1 in 4 chance of moving
+			if rand.Int()%4 == 0 {
+				moved++
+				//fmt.Printf("MOVE: %s (%d,%d)\n", junkie.Name, junkie.CurrentCorner.LocationX, junkie.CurrentCorner.LocationY)
+				junkie.RandomMove()
+			}
 		}
 		junkie.Tick()
 	}
+	//fmt.Printf("Moved: %d\n", moved)
 }
